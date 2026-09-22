@@ -73,7 +73,7 @@ pip install ps4debug
 
 ### Execution
 
-1. Open `v2/lso_master_pipeline.py` and set your PS4 local IP address:
+1. run sender.sh (modify ip addr & make sure your goldhen binloader server is enabled) then Open `v2/lso_master_pipeline.py` and set your PS4 local IP address:
    ```python
    PS4_IP = "192.168.1.XXX"
    ```
