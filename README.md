@@ -1,2 +1,2 @@
 # LSOmpServer
-remotely download a database backup for LSO servers
+remotely download a multiplayer online database backup for LSO servers
