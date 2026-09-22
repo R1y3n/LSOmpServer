@@ -65,7 +65,7 @@ This repository documents the complete pipeline required to extract live authent
 
 1. **Forgotten Credentials Notice:**
    - Some python scripts or log dumps in this repository may contain leftover session tickets, keys, or tokens.
-   - **All sessions, accounts, and passwords associated with these dumps have been completely reset.** These hardcoded values are strictly non-functional, invalid, and provided solely for historical context and schema analysis.
+   - **All sessions, accounts, and passwords associated with these dumps have been completely reset.** These hardcoded values are strictly non-functional, invalid, and provided solely for historical context and schema analysis.so don't waste your time :)
 
 2. **Status of `upload_save.py`:**
    - The script `upload_save.py` is **non-functional** and will fail due to a **CA signature mismatch** when attempting to transmit modified saves back to the cloud.
