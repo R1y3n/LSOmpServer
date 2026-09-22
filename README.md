@@ -72,16 +72,24 @@ pip install ps4debug
 ```
 
 ### Execution
+0. Boot your ps4, enable goldhen, enable the binloader server
 
-1. run sender.sh (modify ip addr & make sure your goldhen binloader server is enabled) then Open `v2/lso_master_pipeline.py` and set your PS4 local IP address:
+1. Run sender.sh (modify ip addr & make sure your goldhen binloader server is enabled) 
+
+2. Open GTAV and stay on the welcome to bluesphere text (do not click continue)
+
+3. Open `v2/lso_master_pipeline.py` and set your PS4 local IP address:
    ```python
    PS4_IP = "192.168.1.XXX"
    ```
-2. Boot your PS4, launch GTA V, and load into Los Santos Online.
-3. Run the master engine:
+
+4. Run the master engine:
    ```bash
    python3 v2/lso_master_pipeline.py
    ```
+
+5. Now click continue (X) on your ps4
+
 4. Sit back and watch the CLI matrix automate the entire pipeline!
 
 ---
