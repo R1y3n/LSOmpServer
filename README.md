@@ -10,7 +10,7 @@
 
 # Los Santos Online (LSO) Save Extractor & Decryptor
 
-An automated reverse-engineering toolkit to dump, capture, download, and decrypt *Los Santos Online* (LSO) / Grand Theft Auto V PS4 save files directly from PS4 memory and Rockstar cloud servers.
+An automated reverse-engineering program to dump, capture, download, and decrypt *Los Santos Online* (LSO) / Grand Theft Auto V PS4 save files directly from PS4 memory and Rockstar cloud servers.
 
 > ⏱️ **Research & Engineering Effort:** This project represents **65+ hours of security research** and **8 hours of active development**, reverse engineering key schedules, cipher structures, and successfully decrypting cloud save files.
 
