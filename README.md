@@ -8,7 +8,12 @@
 
 ```
 
-# Los Santos Online (LSO) Save Extractor & Decryptor
+# This Repo is no longer valid due to a change of api endpoint in the latest (v1.57) update release
+# Therefore this functionality has been implemented by default in LSO's website
+# You'll find it in https://lossantosonline.com/settings under Download your game data section
+
+# Los Santos Online (LSO) Save Extractor & Decryptor (DEPRECATED)
+# No longer up to date
 
 An automated reverse-engineering program to dump, capture, download, and decrypt *Los Santos Online* (LSO) / Grand Theft Auto V PS4 save files directly from PS4 memory and Rockstar cloud servers.
 

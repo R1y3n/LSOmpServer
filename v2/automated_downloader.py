@@ -12,7 +12,7 @@ from ps4debug import PS4Debug
 # =====================================================================
 # CONFIGURATION (Only 2 hardcoded values allowed!)
 # =====================================================================
-PS4_IP = "change_with_your_ps4_local_ip_addr_here" #your ps4 ip addr here
+PS4_IP = "192.168.100.62" #your ps4 ip addr here
 # PS4 Platform Key from GTAEncryption.js
 PS4_PLATFORM_KEY_B64 = "C6i91R73oCD3qt1kUh0UIkDTu3Su5Qa7/r74q5ohUj1UxX/yQz7qB8a4y2TXfCMxqJo31tOPuZJMwG3jupDl7rs=" #this is a gift from reverse engineering dont edit it  :)
 
@@ -28,6 +28,12 @@ state = {
     "server_downloaded": False,
     "seen_http": set()
 }
+
+def map_bounds(memory_map):
+    start = getattr(memory_map, "start", getattr(memory_map, "base", 0))
+    end = getattr(memory_map, "end", 0)
+    prot = int(getattr(memory_map, "prot", 0))
+    return start, end, prot
 
 # =====================================================================
 # CRYPTOGRAPHY ENGINE (Translated from GTAEncryption.js)
@@ -137,6 +143,7 @@ async def ram_scanner(ps4, pid):
     print("[RAM] Initializing continuous memory scanner...")
     maps_cache = []
     last_map_fetch = 0
+    read_errors = 0
     
     while True:
         try:
@@ -146,9 +153,7 @@ async def ram_scanner(ps4, pid):
                 last_map_fetch = asyncio.get_event_loop().time()
                 
             for m in maps_cache:
-                start = getattr(m, "start", 0)
-                end = getattr(m, "end", 0)
-                prot = getattr(m, "prot", 0)
+                start, end, prot = map_bounds(m)
                 length = end - start
                 
                 if not (0 < length <= 64 * 1024 * 1024): continue
@@ -190,7 +195,10 @@ async def ram_scanner(ps4, pid):
                                 print(f"[SUCCESS] RAM Dump saved to: ram_decrypted_save.bin ({len(save_blob)} bytes)")
                                 state["ram_dumped"] = True
                                 
-                except Exception:
+                except Exception as e:
+                    read_errors += 1
+                    if read_errors <= 3:
+                        print(f"[RAM] Cannot read 0x{start:X}-0x{end:X}: {e}")
                     continue
                     
             await asyncio.sleep(1.5)
@@ -203,17 +211,25 @@ async def ram_scanner(ps4, pid):
 async def http_sniffer(ps4, pid):
     print("[NET] Initializing live HTTP endpoint sniffer...")
     maps_cache = []
+    last_map_fetch = 0
+    read_errors = 0
     
     while True:
         try:
-            if not maps_cache:
+            if not maps_cache or asyncio.get_event_loop().time() - last_map_fetch > 30:
                 maps = await ps4.get_process_maps(pid)
-                maps_cache = [m for m in maps if ("http" in getattr(m, "name", "").lower() or "ssl" in getattr(m, "name", "").lower()) and getattr(m, "prot", 0) & 3 == 3]
+                # Network request/response buffers are commonly in anonymous heap
+                # mappings, not in libSceHttp/libssl mappings.
+                maps_cache = [
+                    m for m in maps
+                    if map_bounds(m)[2] & 1
+                    and 0 < map_bounds(m)[1] - map_bounds(m)[0] <= 64 * 1024 * 1024
+                ]
+                last_map_fetch = asyncio.get_event_loop().time()
                 
             for m in maps_cache:
-                start = getattr(m, "start", 0)
-                length = getattr(m, "end", 0) - start
-                if length > 20 * 1024 * 1024: continue
+                start, end, _ = map_bounds(m)
+                length = end - start
                 
                 try:
                     data = await ps4.read_memory(pid, start, length)
@@ -228,12 +244,16 @@ async def http_sniffer(ps4, pid):
                                 url_match = re.search(r'(?:GET|POST|PUT)\s+(/[^\s]+)', clean)
                                 if url_match:
                                     print(f"[HTTP] >>> Intercepted Live Request: {url_match.group(1)}")
-                except Exception:
+                except Exception as e:
+                    read_errors += 1
+                    if read_errors <= 3:
+                        print(f"[NET] Cannot read 0x{start:X}-0x{end:X}: {e}")
                     continue
             await asyncio.sleep(2)
         except asyncio.CancelledError:
             break
-        except Exception:
+        except Exception as e:
+            print(f"[NET] Sniffer error: {e}. Retrying...")
             await asyncio.sleep(3)
 
 async def orchestrator():
@@ -249,8 +269,8 @@ async def orchestrator():
             if pid: break
             print("[SYS] Waiting for eboot.bin to start...")
             await asyncio.sleep(3)
-        except Exception:
-            print("[SYS] PS4 connection lost. Retrying...")
+        except Exception as e:
+            print(f"[SYS] Unable to query PS4: {e}. Retrying...")
             await asyncio.sleep(3)
             
     print(f"[SYS] Locked onto eboot.bin (PID: {pid})")
